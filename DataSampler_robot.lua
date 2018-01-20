@@ -84,7 +84,7 @@ function DataSampler_robot:positiveSampling(no_scaling_jettering)
   local inp, mask = self.dian:pos()
   local scale = torch.uniform(-self.scale, self.scale) -- default value: self.scale = 0.25
   if no_scaling_jettering == 1 then
-    scale = 1
+    scale = 0
   end
   scale = scale + self.scaleCorrectFactor
   --jittering
@@ -113,7 +113,7 @@ end
 function DataSampler_robot:negativeSampling()
   local iSz,wSz,gSz = self.iSz,self.wSz,self.gSz
   local inp = self.dian:neg()
-  local scale = torch.uniform(-1, 1)
+  local scale = torch.uniform(-1, 1) --no jettering, scaling only
   local xc, yc = 224, 224
   local side = 224*2^scale
   local bbox = {xc-side/2, yc-side/2, side, side}
@@ -141,6 +141,9 @@ function DataSampler_robot:negativeFromPositiveSampling()
   scale = scale + self.scaleCorrectFactor
   local sign = torch.random(0,1)*2 - 1
   side = 2^scale * wSz
+  local xc,yc = 224 + sign*torch.uniform(shiftlow, shiftupper)*2^scale, 224 + sign*torch.uniform(shiftlow, shiftupper)*2^scale
+  local bbox = {xc - side/2, yc - side/2, side, side}
+  return self:cropTensor(inp, bbox, 0.5)
 end
 --------------------------------------------------------------------------------
 -- function: score head sampler
