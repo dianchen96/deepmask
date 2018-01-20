@@ -66,7 +66,7 @@ function DataRobot:randomPosExample()
 end
 
 function DataRobot:randomNegExample()
-    local dataIdx = math.ceil(torch.uniform() * self.totalNegNum)
+    local dataIdx = math.ceil(1 + torch.uniform() * self.totalNegNum)
     local img = image.load(self.dataPath .. self.negImAddr[dataIdx])
 
     return img
