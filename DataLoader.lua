@@ -67,7 +67,7 @@ function DataLoader:run()
           if torch.uniform() > hfreq then head = 1 else head = 2 end
 
           for i = 1, bsz do
-            local input, label = _G.ds:get(head)
+            local input, label = _G.ds:get(head) -- gives single data point pair
             if not inputs then
               local iSz = input:size():totable()
               local mSz = label:size():totable()

@@ -37,7 +37,7 @@ function DataSampler_robot:__init(config,split)
 
   -- self.scales stores all bad range
   if config.hfreq > 0 then
-    self.scales = {} -- scale range for score sampling
+    self.scales = {}
     for scale = -2,-0.5,0.25 do table.insert(self.scales,scale) end
     for scale = 0.5,2,.25 do table.insert(self.scales,scale) end
   end
@@ -56,8 +56,8 @@ end
 -- function: get a sample, no change needed
 function DataSampler_robot:get(headSampling)
   local input,label
-  if headSampling == 1 then -- sample masks
-    input, label = self:maskSampling()
+  if headSampling == 1 then -- sample positive jettered pair 
+    input, label = self:positiveSampling(0)
   else -- sample score
     input,label = self:scoreSampling()
   end
@@ -146,41 +146,20 @@ end
 -- function: score head sampler
 local imgPad = torch.Tensor()
 function DataSampler_robot:scoreSampling(cat,imgId)
-  local idx,bb
-  repeat
-    idx = torch.random(1,self.nImages)
-    bb = self.bbStruct[idx]
-  until #bb.scales ~= 0
-
-  local imgId = self.imgIds[idx]
-  local imgName = self.coco:loadImgs(imgId)[1].file_name
-  local pathImg = string.format('%s/%s2014/%s',self.datadir,self.split,imgName)
-  local img = image.load(pathImg,3)
-  local h,w = img:size(2),img:size(3)
-
-  -- sample central pixel of BB to be used
-  local x,y,scale
   local lbl = torch.Tensor(1)
-  if torch.uniform() > .5 then
-    x,y,scale = self:posSamplingBB(bb)
-    lbl:fill(1)
-  else
-    x,y,scale = self:negSamplingBB(bb,w,h)
-    lbl:fill(-1)
+  
+  if torch.uniform() > .5 then -- positive
+    local inp = self.positiveSampling(1)  
+    lbl.fill(1)
+  else -- negative source: neg from pos, neg
+    if torch.uniform() > 0.5 then -- 1/2 neg
+      local inp = self.negativeSampling()
+    else -- 1/2 neg from pos
+      local inp = self.negativeFromPositiveSampling()
+    end
+    lbl.fill(0)
   end
-
-  local s = 2^-scale
-  x,y  = math.min(math.max(x*s,1),w), math.min(math.max(y*s,1),h)
-  local isz = math.max(self.wSz*s,10)
-  local bw =isz/2
-
-  --pad/crop/rescale
-  imgPad:resize(3,h+2*bw,w+2*bw):fill(.5)
-  imgPad:narrow(2,bw+1,h):narrow(3,bw+1,w):copy(img)
-  local inp = imgPad:narrow(2,y,isz):narrow(3,x,isz)
-  inp = image.scale(inp,self.wSz,self.wSz)
-
-  return inp,lbl
+  return inp, lbl
 end
 
 --------------------------------------------------------------------------------
@@ -220,78 +199,5 @@ function DataSampler_robot:cropTensor(inp, b, pad)
   return out
 end
 
---------------------------------------------------------------------------------
--- function: crop bbox from mask
-function DataSampler_robot:cropMask(ann, bbox, h, w, sz)
-  local mask = torch.FloatTensor(sz,sz)
-  local seg = ann.segmentation
-
-  local scale = sz / bbox[3]
-  local polS = {}
-  for m, segm in pairs(seg) do
-    polS[m] = torch.DoubleTensor():resizeAs(segm):copy(segm); polS[m]:mul(scale)
-  end
-  local bboxS = {}
-  for m = 1,#bbox do bboxS[m] = bbox[m]*scale end
-
-  local Rs = self.maskApi.frPoly(polS, h*scale, w*scale)
-  local mo = self.maskApi.decode(Rs)
-  local mc = self:cropTensor(mo, bboxS)
-  mask:copy(image.scale(mc,sz,sz):gt(0.5))
-
-  return mask
-end
-
---------------------------------------------------------------------------------
--- function: jitter bbox
-function DataSampler_robot:jitterBox(box)
-  local x, y, w, h = box[1], box[2], box[3], box[4]
-  local xc, yc = x+w/2, y+h/2
-  local maxDim = math.max(w,h)
-  local scale = log2(maxDim/self.objSz)
-  local s = scale + torch.uniform(-self.scale,self.scale)
-  xc = xc + torch.uniform(-self.shift,self.shift)*2^s
-  yc = yc + torch.uniform(-self.shift,self.shift)*2^s
-  w, h = self.wSz*2^s, self.wSz*2^s
-  return {xc-w/2, yc-h/2,w,h}
-end
-
---------------------------------------------------------------------------------
---function: posSampling: do positive sampling
-function DataSampler_robot:posSamplingBB(bb)
-  local r = math.random(1,#bb.scales)
-  local scale = bb.scales[r]
-  r=torch.random(1,#bb[scale])
-  local x,y = bb[scale][r][1], bb[scale][r][2]
-  return x,y,scale
-end
-
---------------------------------------------------------------------------------
---function: negSampling: do negative sampling
-function DataSampler_robot:negSamplingBB(bb,w0,h0)
-  local x,y,scale
-  local negSample,c = false,0
-  while not negSample and c < 100 do
-    local r = math.random(1,#self.scales)
-    scale = self.scales[r]
-    x,y = math.random(1,w0*2^scale),math.random(1,h0*2^scale)
-    negSample = true
-    for s = -10,10 do
-      local ss = scale+s*self.scale
-      if bb[ss] then
-        for _,c in pairs(bb[ss]) do
-          local dist = math.sqrt(math.pow(x-c[1],2)+math.pow(y-c[2],2))
-          if dist < 3*self.shift then
-            negSample = false
-            break
-          end
-        end
-      end
-      if negSample == false then break end
-    end
-    c=c+1
-  end
-   return x,y,scale
-end
 
 return DataSampler_robot
