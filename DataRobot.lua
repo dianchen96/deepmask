@@ -58,7 +58,7 @@ function DataRobot:__init(config)
 end
 
 function DataRobot:randomPosExample()
-    local dataIdx = math.ceil(torch.uniform() * self.totalPosNum)
+    local dataIdx = math.ceil(1+torch.uniform() * self.totalPosNum)
     local mask = image.load(self.dataPath .. self.posMaskAddr[dataIdx])
     local img = image.load(self.dataPath .. self.posImAddr[dataIdx])
     return img, mask

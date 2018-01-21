@@ -14,7 +14,7 @@ require 'cutorch'
 -- parse arguments
 local cmd = torch.CmdLine()
 cmd:text()
-cmd:text('train DeepMask or SharpMask')
+cmd:text('Fine tune deepmask')
 cmd:text()
 cmd:text('Options:')
 cmd:option('-rundir', 'exps/', 'experiments directory')

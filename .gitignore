@@ -1,4 +1,5 @@
 .DS_Store
 pretrained/
 data/
+.ipynb_checkpoints
 exps/

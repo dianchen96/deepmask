@@ -4,7 +4,7 @@ require 'image'
 -- data format:
 -- img 448 x 448, the center 224 is canonical form
 
-local tds = require 'tds'
+-- local tds = require 'tds'
 local datarobot = require 'DataRobot'
 local DataSampler_robot = torch.class('DataSampler_robot')
 local function log2(x) return math.log(x)/math.log(2) end
@@ -57,7 +57,7 @@ end
 function DataSampler_robot:get(headSampling)
   local input,label
   if headSampling == 1 then -- sample positive jettered pair 
-    print("positive")
+    -- print("positive")
     input, label = self:positiveSampling(0)
   else -- sample score
     input,label = self:scoreSampling()
@@ -69,8 +69,8 @@ function DataSampler_robot:get(headSampling)
   end
 
   -- normalize input
-  print("debugggggggg")
-  print(#input)
+  -- print("debugggggggg")
+  -- print(#input)
   for i=1,3 do input:narrow(1,i,1):add(-self.mean[i]):div(self.std[i]) end
 
   return input,label
@@ -136,7 +136,7 @@ function DataSampler_robot:negativeFromPositiveSampling()
   local scale1 = torch.uniform(-self.scale, self.scale)
   local index = math.random(1,#self.scales)
   local scale2 = self.scales[index]
-  if torch.uniform() > .3 then
+  if torch.uniform() > .4 then
     scale = scale2 --bad scale, arbitrary jettering
   else 
     scale = scale1 --god scale, bad jettering
@@ -144,6 +144,8 @@ function DataSampler_robot:negativeFromPositiveSampling()
   end
   scale = scale + self.scaleCorrectFactor
   local sign = torch.random(0,1)*2 - 1
+  -- print("check if sign is correct")
+  -- print(sign)
   side = 2^scale * wSz
   local xc,yc = 224 + sign*torch.uniform(shiftlow, shiftupper)*2^scale, 224 + sign*torch.uniform(shiftlow, shiftupper)*2^scale
   local bbox = {xc - side/2, yc - side/2, side, side}
@@ -154,20 +156,25 @@ end
 --------------------------------------------------------------------------------
 -- function: score head sampler
 local imgPad = torch.Tensor()
-function DataSampler_robot:scoreSampling(cat,imgId)
+function DataSampler_robot:scoreSampling()
   local lbl = torch.Tensor(1)
-  
+  local inp
   if torch.uniform() > .5 then -- positive
-    local inp = self:positiveSampling(1)  
+    -- print("positive sampling without jettering")
+    inp = self:positiveSampling(1) 
     lbl:fill(1)
   else -- negative source: neg from pos, neg
     if torch.uniform() > 0.5 then -- 1/2 neg
-      local inp = self:negativeSampling()
+      -- print("sampling negative data")
+      inp = self:negativeSampling()
     else -- 1/2 neg from pos
-      local inp = self:negativeFromPositiveSampling()
+      -- print("sampling neg from pos")
+      inp = self:negativeFromPositiveSampling()
     end
     lbl:fill(-1)
   end
+  -- print("scoring sampling output shape")
+  -- print(#inp)
   return inp, lbl
 end
 
