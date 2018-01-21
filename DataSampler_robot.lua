@@ -113,11 +113,11 @@ end
 function DataSampler_robot:negativeSampling()
   local iSz,wSz,gSz = self.iSz,self.wSz,self.gSz
   local inp = self.dian:neg()
-  local scale = torch.uniform(-1, 1) --no jettering, scaling only
+  local scale = torch.uniform(-2, 2) --no jettering, scaling only (large range)
   local xc, yc = 224, 224
   local side = 224*2^scale
   local bbox = {xc-side/2, yc-side/2, side, side}
-  return self:cropTensor(inp, bbox, 0.5)
+  return image:scale(self:cropTensor(inp, bbox, 0.5), wSz, wSz)
 end
 
 --------------------------------------------------------------------------------
@@ -143,7 +143,7 @@ function DataSampler_robot:negativeFromPositiveSampling()
   side = 2^scale * wSz
   local xc,yc = 224 + sign*torch.uniform(shiftlow, shiftupper)*2^scale, 224 + sign*torch.uniform(shiftlow, shiftupper)*2^scale
   local bbox = {xc - side/2, yc - side/2, side, side}
-  return self:cropTensor(inp, bbox, 0.5)
+  return image:scale(self:cropTensor(inp, bbox, 0.5), wSz, wSz) -- crop and rescale
 end
 --------------------------------------------------------------------------------
 -- function: score head sampler
