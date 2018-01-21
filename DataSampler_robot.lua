@@ -7,7 +7,7 @@ require 'image'
 local tds = require 'tds'
 local datarobot = require 'DataRobot'
 local DataSampler_robot = torch.class('DataSampler_robot')
-
+local function log2(x) return math.log(x)/math.log(2) end
 --------------------------------------------------------------------------------
 -- function: init
 function DataSampler_robot:__init(config,split)
@@ -44,7 +44,7 @@ function DataSampler_robot:__init(config,split)
 
   collectgarbage()
 end
-local function log2(x) return math.log(x)/math.log(2) end
+
 
 --------------------------------------------------------------------------------
 -- function: get size of epoch
@@ -57,6 +57,7 @@ end
 function DataSampler_robot:get(headSampling)
   local input,label
   if headSampling == 1 then -- sample positive jettered pair 
+    print("positive")
     input, label = self:positiveSampling(0)
   else -- sample score
     input,label = self:scoreSampling()
@@ -68,6 +69,8 @@ function DataSampler_robot:get(headSampling)
   end
 
   -- normalize input
+  print("debugggggggg")
+  print(#input)
   for i=1,3 do input:narrow(1,i,1):add(-self.mean[i]):div(self.std[i]) end
 
   return input,label
@@ -81,7 +84,7 @@ function DataSampler_robot:positiveSampling(no_scaling_jettering)
   local iSz,wSz,gSz = self.iSz,self.wSz,self.gSz
 
   -- get image
-  local inp, mask = self.dian:pos()
+  local inp, mask = self.dian:randomPosExample()
   local scale = torch.uniform(-self.scale, self.scale) -- default value: self.scale = 0.25
   if no_scaling_jettering == 1 then
     scale = 0
@@ -89,8 +92,8 @@ function DataSampler_robot:positiveSampling(no_scaling_jettering)
   scale = scale + self.scaleCorrectFactor
   --jittering
   local xc, yc, w, h = 224, 224, 224, 224
-  xc = xc + torch.uniform(-self.shift,self.shift)*2^s
-  yc = yc + torch.uniform(-self.shift,self.shift)*2^s
+  xc = xc + torch.uniform(-self.shift,self.shift)*2^scale
+  yc = yc + torch.uniform(-self.shift,self.shift)*2^scale
   if no_scaling_jettering == 1 then
     xc, yc = 224, 224
   end
@@ -112,20 +115,21 @@ end
 -- function: sample negative data from negative data
 function DataSampler_robot:negativeSampling()
   local iSz,wSz,gSz = self.iSz,self.wSz,self.gSz
-  local inp = self.dian:neg()
+  local inp = self.dian:randomNegExample()
   local scale = torch.uniform(-2, 2) --no jettering, scaling only (large range)
   local xc, yc = 224, 224
   local side = 224*2^scale
   local bbox = {xc-side/2, yc-side/2, side, side}
-  return image:scale(self:cropTensor(inp, bbox, 0.5), wSz, wSz)
+  return image.scale(self:cropTensor(inp, bbox, 0.5), wSz, wSz)
 end
 
 --------------------------------------------------------------------------------
 -- function: return negative data from positive data
 function DataSampler_robot:negativeFromPositiveSampling()
+
   local iSz,wSz,gSz = self.iSz,self.wSz,self.gSz
   -- get image
-  local inp, mask = self.dian:pos()
+  local inp, mask = self.dian:randomPosExample()
   local scale = 0
   local shiftlow = 0
   local shiftupper = self.negJetteringMax -- may have some padding issue (Here I use a larger negative scale range)
@@ -143,7 +147,9 @@ function DataSampler_robot:negativeFromPositiveSampling()
   side = 2^scale * wSz
   local xc,yc = 224 + sign*torch.uniform(shiftlow, shiftupper)*2^scale, 224 + sign*torch.uniform(shiftlow, shiftupper)*2^scale
   local bbox = {xc - side/2, yc - side/2, side, side}
-  return image:scale(self:cropTensor(inp, bbox, 0.5), wSz, wSz) -- crop and rescale
+  inp = self:cropTensor(inp, bbox, 0.5)
+  inp = image.scale(inp, wSz, wSz)
+  return inp -- crop and rescale
 end
 --------------------------------------------------------------------------------
 -- function: score head sampler
@@ -152,15 +158,15 @@ function DataSampler_robot:scoreSampling(cat,imgId)
   local lbl = torch.Tensor(1)
   
   if torch.uniform() > .5 then -- positive
-    local inp = self.positiveSampling(1)  
-    lbl.fill(1)
+    local inp = self:positiveSampling(1)  
+    lbl:fill(1)
   else -- negative source: neg from pos, neg
     if torch.uniform() > 0.5 then -- 1/2 neg
-      local inp = self.negativeSampling()
+      local inp = self:negativeSampling()
     else -- 1/2 neg from pos
-      local inp = self.negativeFromPositiveSampling()
+      local inp = self:negativeFromPositiveSampling()
     end
-    lbl.fill(0)
+    lbl:fill(-1)
   end
   return inp, lbl
 end

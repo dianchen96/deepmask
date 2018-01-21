@@ -32,8 +32,8 @@ function DataLoader:__init(config, split)
     local seed = config.seed + idx
     torch.manualSeed(seed)
 
-    paths.dofile('DataSampler.lua')
-    _G.ds = DataSampler(config, split)
+    paths.dofile('DataSampler_robot.lua')
+    _G.ds = DataSampler_robot(config, split)
     return _G.ds:size()
   end
 
