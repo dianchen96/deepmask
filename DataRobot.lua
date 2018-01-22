@@ -63,7 +63,7 @@ function DataRobot:randomPosExample()
     -- print(self.dataPath .. self.posMaskAddr[dataIdx])
     local mask = image.load(self.dataPath .. self.posMaskAddr[dataIdx])
     local img = image.load(self.dataPath .. self.posImAddr[dataIdx])
-    return img, mask
+    return img, mask -- mask is 0/1 binary, img already /255
 end
 
 function DataRobot:randomNegExample()
