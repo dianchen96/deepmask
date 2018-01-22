@@ -11,10 +11,6 @@ local xlua = require 'xlua'    -- xlua provides useful tools, like progress bars
 local ffi = require 'ffi'
 
 local DataRobot = torch.class('DataRobot')
-<<<<<<< HEAD
-=======
--- local dbg = require("debugger")
->>>>>>> dc4cce381c95edf8fd9dc38c9c857e1a0509b110
 
 function DataRobot:__init(config)
     assert(config.data_path, 'Must provide label list file')
@@ -67,35 +63,28 @@ end
 
 function DataRobot:randomPosExample()
     local dataIdx = math.floor(1 + torch.uniform() * #self.posImAddr)
-<<<<<<< HEAD
     local img, mask
     if self.imgType == 'tiff' then
-        mask = cv.imread{self.dataPath .. self.posMaskAddr[dataIdx], cv.IMREAD_COLOR}
-        img = cv.imread{self.dataPath .. self.posImAddr[dataIdx], cv.IMREAD_COLOR}
+        mask = cv.imread{self.dataPath .. self.posMaskAddr[dataIdx], cv.IMREAD_GRAYSCALE}
+        img_bgr = cv.imread{self.dataPath .. self.posImAddr[dataIdx], cv.IMREAD_COLOR}
+        -- img = img_bgr
+        img_bgr = torch.split(img_bgr, 1, 3)
+        img = torch.cat({img_bgr[3], img_bgr[2], img_bgr[1]}, 3):transpose(1,3)
+        img = img:double():mul(1./255)
     else
         mask = image.load(self.dataPath .. self.posMaskAddr[dataIdx])
         img = image.load(self.dataPath .. self.posImAddr[dataIdx])
     end
-=======
-    -- print("mask address")
-    -- print(self.dataPath .. self.posMaskAddr[dataIdx])
-    local mask = image.load(self.dataPath .. self.posMaskAddr[dataIdx])
-    local img = image.load(self.dataPath .. self.posImAddr[dataIdx])
->>>>>>> dc4cce381c95edf8fd9dc38c9c857e1a0509b110
     return img, mask
 end
 
 function DataRobot:randomNegExample()
     local dataIdx = math.floor(1 + torch.uniform() * #self.negImAddr)
-<<<<<<< HEAD
     local img
     if self.imgType == 'tiff' then
         img = image.load(self.dataPath .. self.posImAddr[dataIdx])
     else
         img = image.load(self.dataPath .. self.negImAddr[dataIdx])
     end
-=======
-    local img = image.load(self.dataPath .. self.negImAddr[dataIdx])
->>>>>>> dc4cce381c95edf8fd9dc38c9c857e1a0509b110
     return img
 end
