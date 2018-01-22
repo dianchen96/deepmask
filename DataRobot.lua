@@ -8,9 +8,11 @@ local xlua = require 'xlua'    -- xlua provides useful tools, like progress bars
 local ffi = require 'ffi'
 
 local DataRobot = torch.class('DataRobot')
+local dbg = require("debugger")
 
 function DataRobot:__init(config)
     assert(config.data_path, 'Must provide label list file')
+
     self.dataPath = config.data_path
 
     self.posMaskAddr = {}
@@ -52,6 +54,7 @@ function DataRobot:__init(config)
         end
     end
 
+    dbg(#self.posMaskAddr == #self.posImAddr)
 end
 
 function DataRobot:randomPosExample()
@@ -63,7 +66,6 @@ end
 
 function DataRobot:randomNegExample()
     local dataIdx = math.ceil(1 + torch.uniform() * #self.negImAddr)
-    print(self.negImAddr[dataIdx])
     local img = image.load(self.dataPath .. self.negImAddr[dataIdx])
     return img
 end
