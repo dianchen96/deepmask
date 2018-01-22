@@ -14,7 +14,7 @@ function DataSampler_robot:__init(config,split)
   assert(split == 'train' or split == 'val')
 
   -- dian api, already have all file path saved
-  self.dian = torch.load('/media/4tb/dian/deepmask_sawyer/robot/dataRobot.t7') -- .pos() randomly return 1 img 1 msk, .neg() randomly return 1 img.
+  self.dian = torch.load('/home/fred/Desktop/deepmask_tune/robot/dataRobot.t7') -- .pos() randomly return 1 img 1 msk, .neg() randomly return 1 img.
 
   -- mean/std computed from random subset of ImageNet training images
   self.mean, self.std = {0.485, 0.456, 0.406}, {0.229, 0.224, 0.225}
