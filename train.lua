@@ -17,11 +17,11 @@ cmd:text()
 cmd:text('train DeepMask or SharpMask')
 cmd:text()
 cmd:text('Options:')
-cmd:option('-rundir', 'exps/', 'experiments directory')
+cmd:option('-rundir', 'exps1/', 'experiments directory')
 cmd:option('-datadir', 'data/', 'data directory')
 cmd:option('-seed', 1, 'manually set RNG seed')
 cmd:option('-gpu', 1, 'gpu device')
-cmd:option('-nthreads', 2, 'number of threads for DataSampler')
+cmd:option('-nthreads', 12, 'number of threads for DataSampler')
 cmd:option('-reload', '', 'reload a network from given directory')
 cmd:text()
 cmd:text('Training Options:')
@@ -29,7 +29,7 @@ cmd:option('-batch', 32, 'training batch size')
 cmd:option('-lr', 0, 'learning rate (0 uses default lr schedule)')
 cmd:option('-momentum', 0.9, 'momentum')
 cmd:option('-wd', 5e-4, 'weight decay')
-cmd:option('-maxload', 4000, 'max number of training batches per epoch')
+cmd:option('-maxload', 400, 'max number of training batches per epoch')
 cmd:option('-testmaxload', 500, 'max number of testing batches')
 cmd:option('-maxepoch', 300, 'max number of training epochs')
 cmd:option('-iSz', 160, 'input size')
@@ -78,7 +78,9 @@ if #config.reload > 0 then
   end
   print(string.format('| reloading experiment %s', config.reload))
   local m = torch.load(string.format('%s/model.t7', config.reload))
-  model, config = m.model, m.config
+  model, configg = m.model, m.config
+  print("reload config...")
+  print(config)
 end
 
 --------------------------------------------------------------------------------
@@ -120,3 +122,30 @@ for i = 1, config.maxepoch do
   if i%2 == 0 then trainer:test(epoch,valLoader) end
   epoch = epoch + 1
 end
+
+
+-- official weight's parameters
+--   km : 32
+--   batch : 32
+--   nthreads : 2
+--   oSz : 56
+--   rundir : "pretrained/deepmask/"
+--   dm : false
+--   iSz : 160
+--   reload : ""
+--   gSz : 112
+--   datadir : "data/"
+--   hfreq : 0.5
+--   scale : 0.25
+--   wd : 0.0005
+--   shift : 16
+--   lr : 0
+--   testmaxload : 100
+--   seed : 1
+--   ks : 32
+--   maxepoch : 300
+--   np : 500
+--   maxload : 4000
+--   gpu : 1
+--   momentum : 0.9
+-- }

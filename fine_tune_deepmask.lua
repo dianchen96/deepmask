@@ -41,11 +41,11 @@ cmd:option('-negJetteringMax', 96, 'shift jitter allowed') -- added by fred
 cmd:option('-scale', .25, 'scale jitter allowed')
 cmd:option('-hfreq', 0.5, 'mask/score head sampling frequency')
 cmd:option('-scratch', false, 'train DeepMask with randomly initialize weights')
-cmd:text()
-cmd:text('SharpMask Options:')
-cmd:option('-dm', '', 'path to trained deepmask (if dm, then train SharpMask)')
-cmd:option('-km', 32, 'km')
-cmd:option('-ks', 32, 'ks')
+-- cmd:text()
+-- cmd:text('SharpMask Options:')
+-- cmd:option('-dm', '', 'path to trained deepmask (if dm, then train SharpMask)')
+-- cmd:option('-km', 32, 'km')
+-- cmd:option('-ks', 32, 'ks')
 
 local config = cmd:parse(arg)
 
@@ -79,6 +79,8 @@ if #config.reload > 0 then
   print(string.format('| reloading experiment %s', config.reload))
   local m = torch.load(string.format('%s/model.t7', config.reload))
   model, config = m.model, m.config
+  print("reload config...")
+  print(config)
 end
 
 --------------------------------------------------------------------------------
