@@ -21,7 +21,7 @@ cmd:option('-rundir', 'exps/', 'experiments directory')
 cmd:option('-datadir', 'data/', 'data directory')
 cmd:option('-seed', 1, 'manually set RNG seed')
 cmd:option('-gpu', 1, 'gpu device')
-cmd:option('-nthreads', 2, 'number of threads for DataSampler')
+cmd:option('-nthreads', 6, 'number of threads for DataSampler')
 cmd:option('-reload', '', 'reload a network from given directory')
 cmd:text()
 cmd:text('Training Options:')
@@ -41,11 +41,11 @@ cmd:option('-negJetteringMax', 96, 'shift jitter allowed') -- added by fred
 cmd:option('-scale', .25, 'scale jitter allowed')
 cmd:option('-hfreq', 0.5, 'mask/score head sampling frequency')
 cmd:option('-scratch', false, 'train DeepMask with randomly initialize weights')
-cmd:text()
-cmd:text('SharpMask Options:')
-cmd:option('-dm', '', 'path to trained deepmask (if dm, then train SharpMask)')
-cmd:option('-km', 32, 'km')
-cmd:option('-ks', 32, 'ks')
+-- cmd:text()
+-- cmd:text('SharpMask Options:')
+-- cmd:option('-dm', '', 'path to trained deepmask (if dm, then train SharpMask)')
+-- cmd:option('-km', 32, 'km')
+-- cmd:option('-ks', 32, 'ks')
 
 local config = cmd:parse(arg)
 
@@ -79,6 +79,8 @@ if #config.reload > 0 then
   print(string.format('| reloading experiment %s', config.reload))
   local m = torch.load(string.format('%s/model.t7', config.reload))
   model, config = m.model, m.config
+  print("reload config...")
+  print(config)
 end
 
 --------------------------------------------------------------------------------
