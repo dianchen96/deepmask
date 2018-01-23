@@ -170,7 +170,7 @@ function DataSampler:scoreSampling(cat,imgId)
   local imgId = self.imgIds[idx]
   local imgName = self.coco:loadImgs(imgId)[1].file_name
   local pathImg = string.format('%s/%s2014/%s',self.datadir,self.split,imgName)
-  local img = image.load(pathImg,3)
+  local img = image.load(pathImg,3) -- coco only gives path, 0-255
   local h,w = img:size(2),img:size(3)
 
   -- sample central pixel of BB to be used

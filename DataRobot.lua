@@ -63,6 +63,7 @@ end
 
 function DataRobot:randomPosExample()
     local dataIdx = math.floor(1 + torch.uniform() * #self.posImAddr)
+
     local img, mask
     if self.imgType == 'tiff' then
         mask = cv.imread{self.dataPath .. self.posMaskAddr[dataIdx], cv.IMREAD_GRAYSCALE}
