@@ -83,7 +83,6 @@ function DataRobot:randomNegExample()
     img_bgr = torch.split(img_bgr, 1, 3)
     img = torch.cat({img_bgr[3], img_bgr[2], img_bgr[1]}, 3):transpose(1,3)
     img = img:double():mul(1./255)
-    img = image.load(self.dataPath .. self.negImAddr[dataIdx])
-
+    
     return img
 end
