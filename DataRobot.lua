@@ -65,27 +65,25 @@ function DataRobot:randomPosExample()
     local dataIdx = math.floor(1 + torch.uniform() * #self.posImAddr)
 
     local img, mask
-    if self.imgType == 'tiff' then
-        mask = cv.imread{self.dataPath .. self.posMaskAddr[dataIdx], cv.IMREAD_GRAYSCALE}
-        img_bgr = cv.imread{self.dataPath .. self.posImAddr[dataIdx], cv.IMREAD_COLOR}
-        -- img = img_bgr
-        img_bgr = torch.split(img_bgr, 1, 3)
-        img = torch.cat({img_bgr[3], img_bgr[2], img_bgr[1]}, 3):transpose(1,3)
-        img = img:double():mul(1./255)
-    else
-        mask = image.load(self.dataPath .. self.posMaskAddr[dataIdx])
-        img = image.load(self.dataPath .. self.posImAddr[dataIdx])
-    end
+    
+    mask = cv.imread{self.dataPath .. self.posMaskAddr[dataIdx], cv.IMREAD_GRAYSCALE}
+    img_bgr = cv.imread{self.dataPath .. self.posImAddr[dataIdx], cv.IMREAD_COLOR}
+    img_bgr = torch.split(img_bgr, 1, 3)
+    img = torch.cat({img_bgr[3], img_bgr[2], img_bgr[1]}, 3):transpose(1,3)
+    img = img:double():mul(1./255)
+    
     return img, mask
 end
 
 function DataRobot:randomNegExample()
     local dataIdx = math.floor(1 + torch.uniform() * #self.negImAddr)
     local img
-    if self.imgType == 'tiff' then
-        img = image.load(self.dataPath .. self.posImAddr[dataIdx])
-    else
-        img = image.load(self.dataPath .. self.negImAddr[dataIdx])
-    end
+
+    img_bgr = cv.imread{self.dataPath .. self.negImAddr[dataIdx], cv.IMREAD_COLOR}
+    img_bgr = torch.split(img_bgr, 1, 3)
+    img = torch.cat({img_bgr[3], img_bgr[2], img_bgr[1]}, 3):transpose(1,3)
+    img = img:double():mul(1./255)
+    img = image.load(self.dataPath .. self.negImAddr[dataIdx])
+
     return img
 end
