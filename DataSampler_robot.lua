@@ -14,7 +14,7 @@ function DataSampler_robot:__init(config,split)
   assert(split == 'train' or split == 'val')
 
   -- dian api, already have all file path saved
-  self.dian = torch.load('/media/4tb/dian/deepmask_sawyer/robot/jpgDataRobot.t7') -- .pos() randomly return 1 img 1 msk, .neg() randomly return 1 img.
+  self.dian = torch.load('/media/4tb/dian/deepmask_sawyer/robot/tiffDataRobot.t7') -- .pos() randomly return 1 img 1 msk, .neg() randomly return 1 img.
 
   -- mean/std computed from random subset of ImageNet training images
   self.mean, self.std = {0.485, 0.456, 0.406}, {0.229, 0.224, 0.225}
@@ -68,11 +68,9 @@ function DataSampler_robot:get(headSampling)
     if headSampling == 1 then label = image.hflip(label) end
   end
 
-  -- normalize input
-  -- print("debugggggggg")
-  -- print(#input)
+  -- normalize input)
   for i=1,3 do input:narrow(1,i,1):add(-self.mean[i]):div(self.std[i]) end
-
+  
   return input,label
 end
 
@@ -106,9 +104,16 @@ function DataSampler_robot:positiveSampling(no_scaling_jettering)
   inp = image.scale(inp, wSz, wSz)
   
   --crop & resize mask
+  -- print("check max, min of raw mask")
+  -- print(torch.max(mask))
+  -- print(torch.min(mask))
   lbl = self:cropTensor(mask, bbox, 0)
   lbl = image.scale(lbl, gSz, gSz) -- make sure that mask is already binary
-
+  --check mask range
+  lbl:mul(2):add(-1) -- tiff is good, jpeg has some issues
+  -- print("check max, min of label")
+  -- print(torch.max(lbl))
+  -- print(torch.min(lbl))
   return inp, lbl
 end
 --------------------------------------------------------------------------------
