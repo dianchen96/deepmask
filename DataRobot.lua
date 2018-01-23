@@ -67,7 +67,6 @@ function DataRobot:randomPosExample()
     if self.imgType == 'tiff' then
         mask = cv.imread{self.dataPath .. self.posMaskAddr[dataIdx], cv.IMREAD_GRAYSCALE}
         img_bgr = cv.imread{self.dataPath .. self.posImAddr[dataIdx], cv.IMREAD_COLOR}
-        -- img = img_bgr
         img_bgr = torch.split(img_bgr, 1, 3)
         img = torch.cat({img_bgr[3], img_bgr[2], img_bgr[1]}, 3):transpose(1,3)
         img = img:double():mul(1./255)
@@ -82,7 +81,10 @@ function DataRobot:randomNegExample()
     local dataIdx = math.floor(1 + torch.uniform() * #self.negImAddr)
     local img
     if self.imgType == 'tiff' then
-        img = image.load(self.dataPath .. self.posImAddr[dataIdx])
+        img_bgr = cv.imread{self.dataPath .. self.negImAddr[dataIdx], cv.IMREAD_COLOR}
+        img_bgr = torch.split(img_bgr, 1, 3)
+        img = torch.cat({img_bgr[3], img_bgr[2], img_bgr[1]}, 3):transpose(1,3)
+        img = img:double():mul(1./255)
     else
         img = image.load(self.dataPath .. self.negImAddr[dataIdx])
     end
