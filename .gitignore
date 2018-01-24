@@ -3,3 +3,4 @@ pretrained/
 data/
 .ipynb_checkpoints
 exps/
+*.jpg
