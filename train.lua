@@ -39,6 +39,7 @@ cmd:option('-shift', 16, 'shift jitter allowed')
 cmd:option('-negJetteringMin', 24, 'shift jitter allowed') -- added by fred
 cmd:option('-negJetteringMax', 96, 'shift jitter allowed') -- added by fred
 cmd:option('-scale', .25, 'scale jitter allowed')
+cmd:option("-lr_factor", 0.2, 'learning rate scheduler multiply factor')
 cmd:option('-hfreq', 0.5, 'mask/score head sampling frequency')
 cmd:option('-scratch', false, 'train DeepMask with randomly initialize weights')
 cmd:text()

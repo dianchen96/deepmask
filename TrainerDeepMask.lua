@@ -22,6 +22,7 @@ function Trainer:__init(model, criterion, config)
   self.scoreNet = nn.Sequential():add(model.trunk):add(model.scoreBranch)
   self.criterion = criterion
   self.lr = config.lr
+  self.lr_factor = condig.lr_factor
   self.optimState ={}
   for k,v in pairs({'trunk','mask','score'}) do
     self.optimState[v] = {
@@ -172,16 +173,16 @@ end
 -- function: update training schedule according to epoch
 function Trainer:updateScheduler(epoch)
   if self.lr == 0 then
-    -- local regimes = {
-    --   {   1,  50, 1e-3, 5e-4},
-    --   {  51, 120, 5e-4, 5e-4},
-    --   { 121, 1e8, 1e-4, 5e-4}
-    -- }
-    local regimes = {
-      {   1,  50, 2e-4, 1e-4},
-      {  51, 120, 1e-4, 1e-4},
-      { 121, 1e8, 2e-5, 1e-4}
-    }
+     local regimes = {
+       {   1,  50, 1e-3*config.lr_factor, 5e-4*config.lr_factor},
+       {  51, 120, 5e-4*config.lr_factor, 5e-4*config.lr_factor},
+       { 121, 1e8, 1e-4*config.lr_factor, 5e-4*config.lr_factor}
+     }
+    --local regimes = {
+    --  {   1,  50, 2e-4, 1e-4},
+    --  {  51, 120, 1e-4, 1e-4},
+    --  { 121, 1e8, 2e-5, 1e-4}
+    --}
 
     for _, row in ipairs(regimes) do
       if epoch >= row[1] and epoch <= row[2] then
