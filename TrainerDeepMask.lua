@@ -178,9 +178,9 @@ function Trainer:updateScheduler(epoch)
     --   { 121, 1e8, 1e-4, 5e-4}
     -- }
     local regimes = {
-      {   1,  50, 1e-4, 5e-5},
-      {  51, 120, 5e-5, 5e-5},
-      { 121, 1e8, 1e-5, 5e-5}
+      {   1,  50, 2e-4, 1e-4},
+      {  51, 120, 1e-4, 1e-4},
+      { 121, 1e8, 2e-5, 1e-4}
     }
 
     for _, row in ipairs(regimes) do
