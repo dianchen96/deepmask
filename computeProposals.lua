@@ -45,7 +45,7 @@ paths.dofile('DeepMask.lua')
 paths.dofile('SharpMask.lua')
 
 print('| loading model file... ' .. config.model)
-local m = torch.load(config.model..'/model.t7')
+local m = torch.load(config.model)
 local model = m.model
 model:inference(config.np)
 model:cuda()
